@@ -1,0 +1,10 @@
+BSD::Time README
+
+This Perl module implements the BSD gettimeofday() and settimeofday()
+functions.  They return and modify the time with subsecond accuracy.
+Nominally the accuracy is one microsecond, one millionth of a second,
+but in practice the accuracy may be not that accurate, maybe few dozen
+microseconds.  Your operating system environment must of course support
+the *timeofday() functions, Perl cannot fake them.
+
+Jarkko Hietaniemi <jhi@iki.fi>
