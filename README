@@ -7,4 +7,6 @@ but in practice the accuracy may be not that accurate, maybe few dozen
 microseconds.  Your operating system environment must of course support
 the *timeofday() functions, Perl cannot fake them.
 
+At least Perl 5.002 is required.
+
 Jarkko Hietaniemi <jhi@iki.fi>

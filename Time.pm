@@ -10,7 +10,7 @@ package BSD::Time;
 
 require 5.002;
 
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 use strict;
@@ -27,7 +27,7 @@ require DynaLoader;
 bootstrap BSD::Time $VERSION;
 
 sub time () {
-    scalar _gettimeofday();
+    scalar gettimeofday();
 }
 
 1;
@@ -45,11 +45,12 @@ BSD::Time - BSD gettimeofday, settimeofday functions
 
 	$time = gettimeofday();
 
-	($time, $minuteswest, $dsttype) = gettimeofday();
+	($seconds, $microseconds, $minuteswest, $dsttype) = gettimeofday();
 
 	# settimeofday
 
-	$success = settimeofday($time, $minuteswest, $dsttime);
+	settimeofday($seconds, $microseconds, $minuteswest, $dsttime) or
+	    die "cannot set time";
 
 =head1 DESCRIPTION
 
@@ -82,6 +83,17 @@ C<settimeofday> sets the time, the arguments being as in the list
 context of C<gettimeofday>.  C<settimeofday> may be used only by the
 superuser.  It returns true if setting succeeded, false if not.
 
+=head2 Overloading C<time()>
+
+The C<time()> function can be overridden to return the subsecond part
+of the second.  B<NOTE: THIS IS ONLY FOR THOSE WHO REALLY, *REALLY*
+KNOW WHAT THEY ARE DOING.  THIS CAN BREAK CODE (ACTION-AT-A-DISTANCE,
+SOME CODE, ANY CODE, NOT EVEN YOUR CODE OR MINE CODE, SOME MODULE CODE
+THAT YOU INADVERTENTLY USE, THAT YOU EVEN DO NOT KNOW THAT YOU ARE
+USING) THAT TRUSTS THAT time() ONLY RETURNS INTEGERS.  NOTHING IS
+GUARANTEED.  YOU HAVE BEEN WARNED>.  Now that you know where you stand
+this can done done with: C<use BSD::Time 'time';>
+
 =head1 LIMITATIONS
 
 The time accuracy is nominally one microsecond, one millionth of a
@@ -94,14 +106,10 @@ a way that setting time time with subsecond accuracy is not possible.
 
 =head1 AUTHOR
 
-Jarkko Hietaniemi <jhi@iki.fi>
+Jarkko Hietaniemi C<E<lt>jhi@iki.fiE<gt>>
+
+=head1 ACKNOWLEDGEMENTS
+
+Gisle Aas C<E<lt>gisle@aas.noE<gt>>
 
 =cut
-
-sub gettimeofday () {
-    gettimeofday();
-}
-
-sub settimeofday ($$$$) {
-    gettimeofday(@_);
-}

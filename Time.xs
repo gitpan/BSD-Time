@@ -27,11 +27,11 @@
 
 MODULE = BSD::Time		PACKAGE = BSD::Time
 
-# No, I won't. 5.001m xsubpp chokes on this.
-# PROTOTYPES: enable
+PROTOTYPES: enable
 
 void
 gettimeofday()
+    PROTOTYPE:
     PPCODE:
 	{
 #ifdef HAS_GETTIMEOFDAY
@@ -41,8 +41,8 @@ gettimeofday()
 	      EXTEND(sp, 2);
 	      if (GIMME == G_ARRAY) {
 		  EXTEND(sp, 4);
-		  PUSHs(sv_2mortal(newSVnv(tv.tv_sec)));
-	          PUSHs(sv_2mortal(newSVnv(tv.tv_usec)));
+		  PUSHs(sv_2mortal(newSViv(tv.tv_sec)));
+	          PUSHs(sv_2mortal(newSViv(tv.tv_usec)));
 		  PUSHs(sv_2mortal(newSViv(tz.tz_minuteswest)));
 		  PUSHs(sv_2mortal(newSViv(tz.tz_dsttime)));
 	      } else {
@@ -61,6 +61,7 @@ settimeofday(seconds, microseconds, minuteswest, dsttype)
 	int 	microseconds
 	int	minuteswest
 	int	dsttype
+    PROTOTYPE: $$$$
     CODE:
 	{
 #ifdef HAS_GETTIMEOFDAY

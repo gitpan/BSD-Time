@@ -3,10 +3,10 @@
 # the contents of the Makefile that is written.
 #
 
-require 5.001;
+require 5.002;
 
 $PACKAGE = 'BSD::Time';
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 use Config;
 use ExtUtils::MakeMaker;
@@ -46,7 +46,9 @@ sub try_compile_and_link {
 }
 
 sub has_gettimeofday {
-    return 1 if $Config{'d_gettimeod'} eq 'define';
+    # confusing but true (if condition true ==> -DHAS_GETTIMEOFDAY already)
+    return 0 if $Config{'d_gettimeod'} eq 'define';
+
     return 1 if
     try_compile_and_link(<<EOM);
 #include "EXTERN.h"
@@ -67,7 +69,7 @@ sub has_gettimeofday {
 static int foo()
 {
     struct timeval tv;
-    gettimeofday(&tv);
+    gettimeofday(&tv, 0);
 }
 EOM
     return 0;
@@ -79,11 +81,14 @@ sub init {
     # ucb is poison for Solaris.
     $LIBS = $Config{'osname'} eq 'solaris' ? [''] : ['-lucb -lbsd'];
 
-    if (has_gettimeofday) {
+    if ($Config{'d_gettimeod'} eq 'define') {
+	# do nothing special, everything should be fine
+    } elsif (has_gettimeofday) {
 	$DEFINE .= ' -DHAS_GETTIMEOFDAY';
     } else {
 	die <<EOD
 Your operating system does not seem to have the gettimeofday() function.
+(or, at least, I cannot find it)
 
 There is no way $PACKAGE is going to work.
 
@@ -120,17 +125,6 @@ EOM
     init;
     configure;
     doMakefile;
-    if ($] > 5.001 &&
-	(! -e 'Time.c' || -M 'Time.xs' < -M 'Time.c' )) {
-print  <<EOM;
-
-Note: you may safely ignore the possible message:
-
-	Please specify prototyping behavior for Time.xs (see perlxs manual)
-
-It is nothing serious.
-EOM
-    }
 print  <<EOM;
 
 Done configuring $PACKAGE $VERSION.

@@ -2,5 +2,6 @@ Time.pm
 Time.xs
 Makefile.PL
 t/gettimeofday.t
+t/time.t
 README
 MANIFEST
