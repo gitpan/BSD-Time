@@ -31,19 +31,23 @@ MODULE = BSD::Time		PACKAGE = BSD::Time
 # PROTOTYPES: enable
 
 void
-_gettimeofday()
+gettimeofday()
     PPCODE:
 	{
 #ifdef HAS_GETTIMEOFDAY
 	  struct timeval  tv;
 	  struct timezone tz;
 	  if (gettimeofday(&tv, &tz) == 0) {
-	      EXTEND(sp, 1);
-	      PUSHs(sv_2mortal(newSVnv(TV2DS(tv))));
+	      EXTEND(sp, 2);
 	      if (GIMME == G_ARRAY) {
-		  EXTEND(sp, 2);
+		  EXTEND(sp, 4);
+		  PUSHs(sv_2mortal(newSVnv(tv.tv_sec)));
+	          PUSHs(sv_2mortal(newSVnv(tv.tv_usec)));
 		  PUSHs(sv_2mortal(newSViv(tz.tz_minuteswest)));
 		  PUSHs(sv_2mortal(newSViv(tz.tz_dsttime)));
+	      } else {
+		  EXTEND(sp, 1);
+		  PUSHs(sv_2mortal(newSVnv(TV2DS(tv))));
 	      }
 	  }
 #else
@@ -52,8 +56,9 @@ _gettimeofday()
 	}
 
 int
-_settimeofday(now, minuteswest, dsttype)
-	double	now
+settimeofday(seconds, microseconds, minuteswest, dsttype)
+	int 	seconds
+	int 	microseconds
 	int	minuteswest
 	int	dsttype
     CODE:
@@ -65,15 +70,17 @@ _settimeofday(now, minuteswest, dsttype)
 	  if (geteuid())
 	     croak("settimeofday: Permission denied.");
 
-	  if (now < 0 || now > (double)((1L<<31)-1))
-	      croak("settimeofday: illegal timeval");
-	  tv.tv_sec  = (int)now;
-	  tv.tv_usec = (int)(1000000.0 * (now - (double)tv.tv_sec));
+	  if (seconds < 0 || seconds > (double)((1L<<31)-1))
+	      croak("settimeofday: illegal timeval seconds");
+	  if (microseconds < 0 || microseconds > 999999)
+	      croak("settimeofday: illegal timeval microseconds");
+	  tv.tv_sec  = seconds;
+	  tv.tv_usec = microseconds;
 
 	  if (minuteswest < -720 || minuteswest > 720)
-	      croak("settimeofday: illegal minuteswest");
+	      croak("settimeofday: illegal timezone minuteswest");
 	  if (dsttype < 0 || dsttype > 10) /* 10 is pure guess */
-	      croak("settimeofday: illegal dsttype");
+	      croak("settimeofday: illegal timezone dsttype");
 	  tz.tz_minuteswest = minuteswest;
 	  tz.tz_dsttime = dsttype;
 
